@@ -25,7 +25,9 @@ Move **SplitScroll.app** into **Applications** and open it. The current build is
 2. In SplitScroll, click **Allow Accessibility**, then enable it in **System Settings → Privacy & Security → Accessibility**. Add the app with **+** if needed.
 3. Select a device under **Devices** and adjust **Reverse vertical scrolling** and **Reverse horizontal scrolling**. Mice start reversed; trackpads stay unchanged.
 
-Click the menu bar icon to change settings. Turn **Enable** off to pause, or choose **Quit** to stop the app. **Launch at login** is optional. If you hide the icon, reopen SplitScroll from Finder or Spotlight to reach settings.
+The first launch opens a separate introduction window. Choose **English** or **简体中文** there. You can change the language later in settings.
+
+After setup, click the menu bar icon to expand settings; click it again or click outside to collapse the panel. Turn **Enable** off to pause, or choose **Quit** to stop the app. **Launch at login** is optional. If you hide the icon, reopen SplitScroll from Finder or Spotlight to reach settings.
 
 ## If something goes wrong
 

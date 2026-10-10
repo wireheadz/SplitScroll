@@ -6,18 +6,56 @@ struct PopoverContentView: View {
     @ObservedObject var model: AppModel
 
     var body: some View {
-        Group {
-            if model.showingIntro {
-                IntroductionView(model: model)
+        ScrollView {
+            SettingsView(model: model)
+        }
+        .frame(width: 490, height: min(model.scrolling.trusted ? 590 : 720,
+                                      (NSScreen.main?.visibleFrame.height ?? 800) - 60))
+    }
+}
+
+struct IntroductionWindowContentView: View {
+    @ObservedObject var model: AppModel
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        ScrollView {
+            IntroductionView(model: model)
+        }
+        .background {
+            if reduceTransparency {
+                Color(nsColor: .windowBackgroundColor)
             } else {
-                ScrollView {
-                    SettingsView(model: model)
-                }
-                .frame(width: 490, height: min(model.scrolling.trusted ? 590 : 720,
-                                              (NSScreen.main?.visibleFrame.height ?? 800) - 60))
+                IntroductionGlassBackground()
+                    .overlay(colorScheme == .dark ? Color.black.opacity(0.28) : Color.white.opacity(0.08))
+                    .overlay {
+                        LinearGradient(colors: [.white.opacity(0.12), .clear, .blue.opacity(0.05)],
+                                       startPoint: .topLeading, endPoint: .bottomTrailing)
+                            .allowsHitTesting(false)
+                    }
             }
         }
+        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .strokeBorder(LinearGradient(colors: [.white.opacity(0.35), .white.opacity(0.06), .white.opacity(0.18)],
+                                            startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 1)
+                .allowsHitTesting(false)
+        }
     }
+}
+
+private struct IntroductionGlassBackground: NSViewRepresentable {
+    func makeNSView(context: Context) -> NSVisualEffectView {
+        let view = NSVisualEffectView()
+        view.material = .hudWindow
+        view.blendingMode = .behindWindow
+        view.state = .active
+        return view
+    }
+
+    func updateNSView(_ view: NSVisualEffectView, context: Context) {}
 }
 
 struct IntroductionView: View {
@@ -35,23 +73,25 @@ struct IntroductionView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             HStack {
-                Label("Welcome to SplitScroll", systemImage: "computermouse.fill")
+                Label(model.text("Welcome to SplitScroll"), systemImage: "computermouse.fill")
                     .font(.callout.weight(.semibold)).foregroundStyle(.secondary)
                 Spacer()
-                Text("\(step + 1) of 3").font(.caption).foregroundStyle(.secondary)
+                Text(model.language == .simplifiedChinese ? "第 \(step + 1) 步，共 3 步" : "\(step + 1) of 3").font(.caption).foregroundStyle(.secondary)
             }
+
+            LanguagePicker(model: model)
 
             Group {
                 if step == 0 {
                     HStack(spacing: 16) {
-                        ScrollPreview(symbol: "hand.draw.fill", name: "Trackpad", caption: "Natural scrolling", reverse: false)
-                        ScrollPreview(symbol: "computermouse.fill", name: "Mouse", caption: "Traditional scrolling", reverse: true)
+                        ScrollPreview(symbol: "hand.draw.fill", name: model.text("Trackpad"), caption: model.text("Natural scrolling"), reverse: false)
+                        ScrollPreview(symbol: "computermouse.fill", name: model.text("Mouse"), caption: model.text("Traditional scrolling"), reverse: true)
                     }
                 } else if step == 1 {
                     VStack(alignment: .leading, spacing: 12) {
-                        Label("Connected devices", systemImage: "cable.connector").font(.headline)
+                        Label(model.text("Connected devices"), systemImage: "cable.connector").font(.headline)
                         if model.scrolling.catalog.devices.isEmpty {
-                            Text("Connect a mouse or trackpad to add its settings.")
+                            Text(model.text("Connect a mouse or trackpad to add its settings."))
                                 .foregroundStyle(.secondary)
                         } else {
                             ScrollView {
@@ -61,46 +101,46 @@ struct IntroductionView: View {
                                             Image(systemName: device.isTrackpad ? "hand.draw" : "computermouse")
                                                 .font(.title2).foregroundStyle(.blue).frame(width: 30)
                                             VStack(alignment: .leading, spacing: 3) {
-                                                Text(device.name).font(.callout.weight(.medium))
-                                                Text(device.detail).font(.caption).foregroundStyle(.secondary)
+                                                Text(model.text(device.name)).font(.callout.weight(.medium))
+                                                Text(device.localizedDetail(language: model.language)).font(.caption).foregroundStyle(.secondary)
                                             }
                                             Spacer()
-                                            Text(device.isTrackpad ? "Natural" : "Traditional")
+                                            Text(model.text(device.isTrackpad ? "Natural" : "Traditional"))
                                                 .font(.caption).foregroundStyle(.blue)
                                         }.padding(12)
-                                            .background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 10))
+                                            .background(.white.opacity(0.07), in: RoundedRectangle(cornerRadius: 10))
                                     }
                                 }
                             }
                         }
-                        Text("Each device remembers its own choices.").font(.caption).foregroundStyle(.secondary)
+                        Text(model.text("Each device remembers its own choices.")).font(.caption).foregroundStyle(.secondary)
                     }
                     .padding(18).background(.blue.opacity(0.05), in: RoundedRectangle(cornerRadius: 16))
                 } else {
                     VStack(spacing: 16) {
                         Image(systemName: model.scrolling.trusted ? "checkmark.shield.fill" : "hand.raised.fill")
                             .font(.system(size: 48)).foregroundStyle(.blue)
-                        Text(model.scrolling.trusted ? "Accessibility is ready" : "Enable Accessibility")
+                        Text(model.text(model.scrolling.trusted ? "Accessibility is ready" : "Enable Accessibility"))
                             .font(.headline)
-                        Text("System Settings → Privacy & Security → Accessibility")
+                        Text(model.text("System Settings → Privacy & Security → Accessibility"))
                             .font(.callout).foregroundStyle(.secondary).multilineTextAlignment(.center)
                         if !model.scrolling.trusted {
-                            Button("Allow Accessibility") { model.scrolling.requestPermission() }
+                            Button(model.text("Allow Accessibility")) { model.scrolling.requestPermission() }
                                 .buttonStyle(.borderedProminent)
                         }
-                        Text("You can also enable it later in settings.")
+                        Text(model.text("You can also enable it later in settings."))
                             .font(.caption).foregroundStyle(.secondary)
                     }.frame(maxWidth: .infinity).padding(20)
                         .background(.blue.opacity(0.05), in: RoundedRectangle(cornerRadius: 16))
                 }
-            }.frame(height: 236)
+            }.frame(height: 220)
                 .id(step).transition(.opacity)
 
             VStack(alignment: .leading, spacing: 10) {
-                Text(titles[step]).font(.system(size: 25, weight: .semibold))
-                Text(descriptions[step]).font(.callout).foregroundStyle(.secondary)
+                Text(model.text(titles[step])).font(.system(size: 25, weight: .semibold))
+                Text(model.text(descriptions[step])).font(.callout).foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
-            }.frame(height: 100, alignment: .topLeading)
+            }.frame(minHeight: 100, alignment: .topLeading)
 
             HStack {
                 HStack(spacing: 6) {
@@ -108,10 +148,10 @@ struct IntroductionView: View {
                         Capsule().fill(index == step ? Color.blue : Color.secondary.opacity(0.25))
                             .frame(width: index == step ? 20 : 6, height: 6)
                     }
-                }.accessibilityLabel("Introduction step \(step + 1) of 3")
+                }.accessibilityLabel(model.language == .simplifiedChinese ? "介绍第 \(step + 1) 步，共 3 步" : "Introduction step \(step + 1) of 3")
                 Spacer()
-                if step > 0 { Button("Back") { changeStep(step - 1) } }
-                Button(step == 2 ? "Open device settings" : "Continue") {
+                if step > 0 { Button(model.text("Back")) { changeStep(step - 1) } }
+                Button(model.text(step == 2 ? "Open device settings" : "Continue")) {
                     if step == 2 { model.finishIntro() }
                     else { changeStep(step + 1) }
                 }.buttonStyle(.borderedProminent).keyboardShortcut(.defaultAction)
@@ -136,7 +176,7 @@ private struct ScrollPreview: View {
         VStack(spacing: 12) {
             ZStack {
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(Color(nsColor: .controlBackgroundColor)).frame(height: 102)
+                    .fill(.primary.opacity(0.055)).frame(height: 102)
                 VStack(alignment: .leading, spacing: 9) {
                     ForEach(0..<5) { index in
                         RoundedRectangle(cornerRadius: 3)
@@ -156,7 +196,12 @@ private struct ScrollPreview: View {
             }
         }
         .padding(16).frame(maxWidth: .infinity)
-        .background(.blue.opacity(0.06), in: RoundedRectangle(cornerRadius: 16))
+        .background(.white.opacity(0.065), in: RoundedRectangle(cornerRadius: 16))
+        .overlay {
+            RoundedRectangle(cornerRadius: 16)
+                .strokeBorder(.white.opacity(0.15), lineWidth: 0.75)
+                .allowsHitTesting(false)
+        }
         .onAppear {
             guard !reduceMotion else { return }
             withAnimation(.easeInOut(duration: 1.4).repeatForever(autoreverses: true)) { moving = true }

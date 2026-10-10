@@ -2,7 +2,7 @@
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
-触控板自然滚动，鼠标传统滚动。在 macOS 菜单栏中，为每个设备分别设置垂直和水平滚动方向。
+在 macOS 中，为触控板和每个鼠标分别设置滚动方向。
 
 需要 **macOS 13 或更新版本**。设置保存在本机，不收集使用数据、不发送网络请求，也不记录输入操作。
 
@@ -25,7 +25,9 @@ open dist
 2. 在 SplitScroll 中点击 **Allow Accessibility**，然后前往 **系统设置 → 隐私与安全性 → 辅助功能**，启用 SplitScroll。如果列表中没有该应用，点击 **+** 添加。
 3. 在 **Devices** 中选择设备，分别设置 **Reverse vertical scrolling**（反转垂直滚动）和 **Reverse horizontal scrolling**（反转水平滚动）。默认反转鼠标滚动方向，触控板保持不变。
 
-点击菜单栏图标可修改设置。关闭 **Enable** 可暂停滚动调整，选择 **Quit** 可退出应用。需要开机自动运行时，可开启 **Launch at login**。如果隐藏了菜单栏图标，从 Finder 或 Spotlight 重新打开 SplitScroll 即可进入设置。
+首次启动会打开独立的介绍窗口，可选择 **English** 或 **简体中文**，之后也可在设置中切换。
+
+完成设置后，点击菜单栏图标展开设置面板，再次点击图标或点击面板外即可收起。关闭 **Enable** 可暂停滚动调整，选择 **Quit** 可退出应用。需要开机自动运行时，可开启 **Launch at login**。如果隐藏了菜单栏图标，从 Finder 或 Spotlight 重新打开 SplitScroll 即可进入设置。
 
 ## 常见问题
 

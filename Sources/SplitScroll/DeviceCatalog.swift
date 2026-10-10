@@ -2,13 +2,16 @@ import Foundation
 import IOKit
 import CoreGraphics
 import SenderBridge
+import ScrollCore
 
 struct ScrollDevice: Identifiable, Equatable {
     let id: String
     let name: String
     let transport: String
     let isTrackpad: Bool
-    var detail: String { "\(isTrackpad ? "Trackpad" : "Mouse") · \(transport)" }
+    func localizedDetail(language: AppLanguage) -> String {
+        "\(language.text(isTrackpad ? "Trackpad" : "Mouse")) · \(language.text(transport))"
+    }
 }
 
 final class DeviceCatalog {
